@@ -1,0 +1,29 @@
+import 'package:language_tutor/features/flashcards/flashcard.dart';
+
+abstract class FlashcardEvent {}
+
+class LoadFlashcards extends FlashcardEvent {
+  final bool onlyDue;
+  LoadFlashcards({this.onlyDue = false});
+}
+
+class AddFlashcard extends FlashcardEvent {
+  final Flashcard flashcard;
+  AddFlashcard(this.flashcard);
+}
+
+class UpdateFlashcard extends FlashcardEvent {
+  final Flashcard flashcard;
+  UpdateFlashcard(this.flashcard);
+}
+
+class DeleteFlashcard extends FlashcardEvent {
+  final int id;
+  DeleteFlashcard(this.id, {required Flashcard flashcard});
+}
+
+class ReviewFlashcard extends FlashcardEvent {
+  final Flashcard flashcard;
+  final int quality; // 0–5 for spaced repetition
+  ReviewFlashcard({required this.flashcard, required this.quality});
+}
