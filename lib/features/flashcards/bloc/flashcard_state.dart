@@ -1,4 +1,4 @@
-import 'package:language_tutor/features/flashcards/flashcard.dart';
+import 'package:language_tutor/data/models/flashcard.dart';
 
 abstract class FlashcardState {}
 

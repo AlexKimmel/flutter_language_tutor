@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:language_tutor/data/models/chat_messages.dart';
+import 'package:language_tutor/data/models/gramamr_card.dart';
 
 class userCatBubble extends StatelessWidget {
   const userCatBubble({super.key, required this.text});
@@ -50,6 +51,67 @@ class aiChatBubble extends StatelessWidget {
   final Widget text;
   final ChatMessage message;
 
+  Widget _buildGrammarNotes(GrammarCard notes) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.all(4.0),
+          decoration: BoxDecoration(
+            color: Colors.blue.shade50,
+            borderRadius: BorderRadius.circular(10.0),
+            border: Border.all(color: Colors.blue.shade200),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.lightbulb_outline,
+                    size: 16,
+                    color: Colors.blue.shade700,
+                  ),
+                  const SizedBox(width: 4.0),
+                  Text(
+                    notes.title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue.shade700,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2.0),
+
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: RichText(
+                  text: TextSpan(
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade800),
+                    children: [
+                      TextSpan(
+                        text: '"${notes.example}"\n',
+                        style: const TextStyle(fontStyle: FontStyle.italic),
+                      ),
+                      TextSpan(
+                        text: "${notes.explanation}\n",
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      if (notes.text.isNotEmpty)
+                        TextSpan(text: '\n${notes.text}'),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -83,61 +145,7 @@ class aiChatBubble extends StatelessWidget {
           ),
           if (message.grammarNotes.isNotEmpty) ...[
             const SizedBox(height: 8.0),
-            Container(
-              margin: const EdgeInsets.only(left: 48.0),
-              padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8.0),
-                border: Border.all(color: Colors.blue.shade200),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.lightbulb_outline,
-                        size: 16,
-                        color: Colors.blue.shade700,
-                      ),
-                      const SizedBox(width: 4.0),
-                      Text(
-                        'Grammar Notes',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade700,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4.0),
-                  ...message.grammarNotes.map(
-                    (note) => Padding(
-                      padding: const EdgeInsets.only(bottom: 4.0),
-                      child: RichText(
-                        text: TextSpan(
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade700,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: '"${note['sentence']}" ',
-                              style: const TextStyle(
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                            TextSpan(text: note['explanation']),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            ...message.grammarNotes.map((notes) => _buildGrammarNotes(notes)),
           ],
         ],
       ),

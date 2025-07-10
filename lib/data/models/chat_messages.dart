@@ -1,11 +1,12 @@
-import 'package:language_tutor/features/flashcards/flashcard.dart';
+import 'package:language_tutor/data/models/flashcard.dart';
+import 'package:language_tutor/data/models/gramamr_card.dart';
 
 class ChatMessage {
   final String text;
   final bool isUser;
   final DateTime timestamp;
   List<Flashcard> flashcards = [];
-  List<Map<String, dynamic>> grammarNotes = [];
+  List<GrammarCard> grammarNotes = [];
 
   ChatMessage({
     required this.text,
@@ -29,11 +30,11 @@ class ChatMessage {
                 .map((e) => Flashcard.fromMap(Map<String, dynamic>.from(e)))
                 .toList()
           : [],
-      grammarNotes:
-          (json['grammar_notes'] as List<dynamic>?)
-              ?.map((e) => Map<String, String>.from(e as Map))
-              .toList() ??
-          [],
+      grammarNotes: json['grammar_notes'] != null
+          ? (json['grammar_notes'] as List<dynamic>)
+                .map((e) => GrammarCard.fromMap(Map<String, dynamic>.from(e)))
+                .toList()
+          : [],
     );
   }
 

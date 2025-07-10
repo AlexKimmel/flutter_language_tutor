@@ -6,9 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:language_tutor/data/models/chat_messages.dart';
+import 'package:language_tutor/data/models/gramamr_card.dart';
 import 'package:language_tutor/features/chat/bloc/chat_repository.dart';
 import 'package:language_tutor/features/flashcards/bloc/flashcard_repository.dart';
-import 'package:language_tutor/features/flashcards/flashcard.dart';
+import 'package:language_tutor/data/models/flashcard.dart';
+import 'package:language_tutor/features/grammar/bloc/grammar_repository.dart';
 import 'chat_event.dart';
 import 'chat_state.dart';
 
@@ -17,6 +19,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final List<ChatMessage> _messages = [];
   final ChatRepository _chatRepository = ChatRepository();
   final FlashcardRepository _flashcardRepository = FlashcardRepository();
+  final GrammarRepository _grammarRepository = GrammarRepository();
 
   ChatBloc() : super(ChatLoading()) {
     on<LoadChatHistory>(_onLoadChatHistory);
@@ -117,7 +120,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         { "italian": "new_word", "english": "translation", "context": "Sentence where it was used" }
       ],
       "grammar_notes": [
-        { "sentence": "Italian sentence", "explanation": "Short grammar explanation" }
+        { "title": "the title of the grammar card", "example": "Italian sentence", "explanation": "Short grammar explanation", "text": "some not nessecary additional text" }
       ]
       "histroy" : [
       "User: user text is marked with User and AI for AI responses",
@@ -200,13 +203,26 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     if (data['grammar_notes'] != null) {
       message.grammarNotes = (data['grammar_notes'] as List<dynamic>)
-          .map((note) => Map<String, String>.from(note as Map))
+          .map(
+            (grammarNote) => GrammarCard(
+              title: grammarNote['sentence'] ?? 'Grammar Note',
+              example: grammarNote['sentence'] ?? '',
+              explanation: grammarNote['explanation'] ?? '',
+              text: '',
+            ),
+          )
           .toList();
     }
 
     if (message.flashcards.isNotEmpty) {
       for (var card in message.flashcards) {
         _flashcardRepository.addFlashcard(card);
+      }
+    }
+
+    if (message.grammarNotes.isNotEmpty) {
+      for (var note in message.grammarNotes) {
+        _grammarRepository.addGrammarCard(note);
       }
     }
     return message;

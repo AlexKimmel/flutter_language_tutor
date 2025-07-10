@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:language_tutor/features/flashcards/bloc/flashcard_bloc.dart';
 import 'package:language_tutor/features/flashcards/bloc/flashcard_event.dart';
-import 'package:language_tutor/features/flashcards/flashcard.dart';
+import 'package:language_tutor/data/models/flashcard.dart';
 
 class FlashcardDialog extends StatelessWidget {
   const FlashcardDialog({

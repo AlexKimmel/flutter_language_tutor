@@ -1,7 +1,7 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-import 'package:language_tutor/features/flashcards/flashcard.dart';
+import 'package:language_tutor/data/models/flashcard.dart';
 
 class FlashcardRepository {
   static final FlashcardRepository _instance = FlashcardRepository._internal();

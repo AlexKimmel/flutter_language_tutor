@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:language_tutor/features/flashcards/bloc/flashcard_bloc.dart';
 import 'package:language_tutor/features/flashcards/bloc/flashcard_event.dart';
-import 'package:language_tutor/features/flashcards/flashcard.dart';
+import 'package:language_tutor/data/models/flashcard.dart';
 
 class FlashcardItem extends StatefulWidget {
   const FlashcardItem({super.key, required this.flashcard});
