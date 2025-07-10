@@ -79,6 +79,31 @@ class FlashcardRepository {
     return maps.map((e) => Flashcard.fromMap(e)).toList();
   }
 
+  //Get known flashcards
+  Future<List<Flashcard>> getKnownFlashcards({int limit = 10}) async {
+    final db = await database;
+    final maps = await db.query(
+      'flashcards',
+      where: 'repetitions > 0',
+      orderBy: 'repetitions DESC, nextReview DESC',
+      limit: limit,
+    );
+    return maps.map((e) => Flashcard.fromMap(e)).toList();
+  }
+
+  Future<List<Flashcard>> getCurrentlyLearningFlashcards({
+    int limit = 10,
+  }) async {
+    final db = await database;
+    final maps = await db.query(
+      'flashcards',
+      where: 'repetitions > 0',
+      orderBy: 'nextReview ASC, repetitions ASC',
+      limit: limit,
+    );
+    return maps.map((e) => Flashcard.fromMap(e)).toList();
+  }
+
   Flashcard updateSRS(Flashcard card, int quality) {
     int repetitions = card.repetitions;
     double ef = card.easeFactor;

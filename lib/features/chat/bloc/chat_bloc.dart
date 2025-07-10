@@ -1,16 +1,22 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:bloc/bloc.dart';
+// ignore: depend_on_referenced_packages
+import 'package:bloc/bloc.dart' show Bloc, Emitter;
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:language_tutor/data/models/chat_messages.dart';
+import 'package:language_tutor/features/chat/bloc/chat_repository.dart';
+import 'package:language_tutor/features/flashcards/bloc/flashcard_repository.dart';
+import 'package:language_tutor/features/flashcards/flashcard.dart';
 import 'chat_event.dart';
 import 'chat_state.dart';
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final textController = TextEditingController();
   final List<ChatMessage> _messages = [];
+  final ChatRepository _chatRepository = ChatRepository();
+  final FlashcardRepository _flashcardRepository = FlashcardRepository();
 
   ChatBloc() : super(ChatLoading()) {
     on<LoadChatHistory>(_onLoadChatHistory);
@@ -21,14 +27,24 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     LoadChatHistory event,
     Emitter<ChatState> emit,
   ) async {
-    // TODO: Load from SQLite
-    emit(ChatLoaded(List.from(_messages)));
+    emit(ChatLoading());
+    try {
+      final chatHistory = await _chatRepository.getChatHistory();
+      _messages.clear();
+      _messages.addAll(
+        chatHistory.map((msg) => ChatMessage.fromMap(msg)).toList(),
+      );
+      emit(ChatLoaded(List.from(_messages)));
+    } catch (e) {
+      emit(ChatError('Failed to load chat history: ${e.toString()}'));
+    }
   }
 
   Future<void> _onSendUserMessage(
     SendUserMessage event,
     Emitter<ChatState> emit,
   ) async {
+    textController.clear();
     final userMessage = ChatMessage(
       text: event.message,
       isUser: true,
@@ -38,12 +54,16 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     _messages.add(userMessage);
     emit(ChatLoaded(List.from(_messages)));
 
+    // Save user message to repository
+    await _chatRepository.addMessage(userMessage.text, userMessage.isUser);
+
     final aiResponse = await _generateResponse(event.message);
     _messages.add(aiResponse);
 
     emit(ChatLoaded(List.from(_messages)));
 
-    // TODO: Save to SQLite
+    // Save AI response to repository
+    await _chatRepository.addMessage(aiResponse.text, aiResponse.isUser);
   }
 
   static String get _openAiApiKey => dotenv.env['OPENAI_API_KEY'] ?? '';
@@ -87,7 +107,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     2. Then also include the same sentence in the `grammar_notes` list below, with an explanation.
 
     This lets the app render a grammar note below your resonse and store it for later review.
-
+    
+    You will also be given a chat history, which you should use to maintain context and continuity in the conversation.
+    
     Each response must be returned as a JSON object with the following structure:
     {
       "reply": "Your response text here, mixing Italian and English, using [**italian_word**](flashcard:translation) syntax for new vocabulary.",
@@ -97,12 +119,19 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       "grammar_notes": [
         { "sentence": "Italian sentence", "explanation": "Short grammar explanation" }
       ]
+      "histroy" : [
+      "User: user text is marked with User and AI for AI responses",
+      "AI: AI response is marked with AI"]
     }
 
     Avoid translating or re-teaching `known_words` or `currently_learning` words keep them in italian and mark them as if there where a flashcard.
     Encourage natural conversation, offer corrections if needed, and always stay supportive and context-aware.
     Return only a valid JSON object, with no introduction, no markdown blocks, no explanation — only valid raw JSON like this:
 ''';
+      final List<Flashcard> knownWords = await _flashcardRepository
+          .getKnownFlashcards();
+      final List<Flashcard> currentlyLearning = await _flashcardRepository
+          .getCurrentlyLearningFlashcards();
 
       final response = await http.post(
         Uri.parse(_openAiApiUrl),
@@ -117,11 +146,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
             {
               'role': 'assistant',
               'content':
-                  'known_words: [${_knownWords.join(', ')}], currently_learning: [${_currentlyLearning.join(', ')}]',
+                  'known_words: [${knownWords.join(', ')}], currently_learning: [${currentlyLearning.join(', ')}]',
             },
             {'role': 'user', 'content': userMessage},
           ],
-          'max_tokens': 250,
+          'max_tokens': 500,
           'temperature': 0.7,
         }),
       );
@@ -130,7 +159,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         final data = jsonDecode(response.body);
 
         final raw = data['choices'][0]['message']['content'];
-        print('Raw response: $raw');
         final cleaned = _extractJsonBlock(raw);
         final responseJson = jsonDecode(cleaned);
         return _formatResponse(responseJson);
@@ -155,20 +183,32 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     );
 
     if (data['flashcards'] != null) {
-      message.flashcards = data['flashcards'].map<Map<String, String>>((
-        flashcard,
-      ) {
-        return Map<String, String>.from(flashcard);
-      }).toList();
-    }
-    if (data['grammar_notes'] != null) {
-      message.grammarNotes = data['grammar_notes'].map<Map<String, String>>((
-        note,
-      ) {
-        return Map<String, String>.from(note);
-      }).toList();
+      message.flashcards = (data['flashcards'] as List<dynamic>)
+          .map(
+            (flashcard) => Flashcard(
+              front: flashcard['italian'] ?? '',
+              back: flashcard['english'] ?? '',
+              context: flashcard['context'] ?? '',
+              nextReview: DateTime.now(),
+              interval: 1,
+              easeFactor: 2.5,
+              repetitions: 0,
+            ),
+          )
+          .toList();
     }
 
+    if (data['grammar_notes'] != null) {
+      message.grammarNotes = (data['grammar_notes'] as List<dynamic>)
+          .map((note) => Map<String, String>.from(note as Map))
+          .toList();
+    }
+
+    if (message.flashcards.isNotEmpty) {
+      for (var card in message.flashcards) {
+        _flashcardRepository.addFlashcard(card);
+      }
+    }
     return message;
   }
 

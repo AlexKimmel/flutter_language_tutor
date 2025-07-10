@@ -4,6 +4,7 @@ import 'package:language_tutor/app/app.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:language_tutor/features/flashcards/bloc/flashcard_bloc.dart';
 import 'package:language_tutor/features/flashcards/bloc/flashcard_repository.dart';
+import 'package:language_tutor/features/chat/bloc/chat_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,8 +13,11 @@ void main() async {
   final flashcardRepository = FlashcardRepository();
 
   runApp(
-    BlocProvider(
-      create: (_) => FlashcardBloc(flashcardRepository),
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => FlashcardBloc(flashcardRepository)),
+        BlocProvider(create: (_) => ChatBloc()),
+      ],
       child: MaterialApp(home: const App()),
     ),
   );
