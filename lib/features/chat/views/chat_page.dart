@@ -5,7 +5,8 @@ import 'package:language_tutor/data/models/chat_messages.dart';
 import 'package:language_tutor/features/chat/bloc/chat_bloc.dart';
 import 'package:language_tutor/features/chat/bloc/chat_event.dart';
 import 'package:language_tutor/features/chat/bloc/chat_state.dart';
-import 'package:language_tutor/features/chat/widgets/chat_bubbles.dart';
+import 'package:language_tutor/features/chat/widgets/ai_chat_bubble.dart';
+import 'package:language_tutor/features/chat/widgets/user_chat_bubbles.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -46,10 +47,10 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _buildMessage(ChatMessage message) {
     if (message.isUser) {
-      return userCatBubble(text: message.text);
+      return UserCatBubble(text: message.text);
     }
     Widget text = _buildText(message);
-    return aiChatBubble(message: message, context: context, text: text);
+    return AiChatBubble(message: message, context: context, text: text);
   }
 
   Widget _buildText(ChatMessage message) {

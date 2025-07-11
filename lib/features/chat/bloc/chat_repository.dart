@@ -1,5 +1,4 @@
 import 'package:sqflite/sqflite.dart';
-import 'package:sqflite/sqlite_api.dart';
 
 class ChatRepository {
   static final ChatRepository _instance = ChatRepository._internal();
@@ -17,7 +16,7 @@ class ChatRepository {
     final path = 'chat_history.db'; // Use a fixed path for simplicity
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE chat_messages (
@@ -31,9 +30,9 @@ class ChatRepository {
     );
   }
 
-  Future<void> addMessage(String text, bool isUser) async {
+  Future<int> addMessage(String text, bool isUser) async {
     final db = await database;
-    await db.insert('chat_messages', {
+    return await db.insert('chat_messages', {
       'text': text,
       'is_user': isUser ? 1 : 0,
       'timestamp': DateTime.now().toIso8601String(),

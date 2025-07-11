@@ -2,6 +2,7 @@ import 'package:language_tutor/data/models/flashcard.dart';
 import 'package:language_tutor/data/models/gramamr_card.dart';
 
 class ChatMessage {
+  final int? id;
   final String text;
   final bool isUser;
   final DateTime timestamp;
@@ -9,6 +10,7 @@ class ChatMessage {
   List<GrammarCard> grammarNotes = [];
 
   ChatMessage({
+    this.id,
     required this.text,
     required this.isUser,
     required this.timestamp,
@@ -18,6 +20,7 @@ class ChatMessage {
 
   factory ChatMessage.fromMap(Map<String, dynamic> json) {
     return ChatMessage(
+      id: json['id'] as int?,
       text: (json['text'] ?? json['reply'] ?? '') as String,
       isUser:
           json['is_user'] != null &&
@@ -40,6 +43,7 @@ class ChatMessage {
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'reply': text,
       'is_user': isUser,
       'timestamp': timestamp.toIso8601String(),

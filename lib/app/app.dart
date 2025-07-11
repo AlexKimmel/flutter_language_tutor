@@ -152,7 +152,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
             AnimatedPositioned(
               duration: const Duration(milliseconds: 150),
               curve: Curves.decelerate,
-              top: _bottomBarController.isBarVisible ? -25 : 0,
+              top: _currentPage == 0 ? 0 : -25,
               child: Positioned(
                 child: FloatingActionButton(
                   shape: const CircleBorder(),

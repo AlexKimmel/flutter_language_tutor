@@ -33,10 +33,18 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(ChatLoading());
     try {
       final chatHistory = await _chatRepository.getChatHistory();
-      _messages.clear();
-      _messages.addAll(
-        chatHistory.map((msg) => ChatMessage.fromMap(msg)).toList(),
-      );
+      for (var msg in chatHistory) {
+        ChatMessage message = ChatMessage.fromMap(msg);
+        if (!_messages.contains(message)) {
+          _grammarRepository.getGrammarCardsByMessageId(message.id as int).then(
+            (grammarCards) {
+              message.grammarNotes = grammarCards;
+            },
+          );
+          _messages.add(message);
+        }
+      }
+
       emit(ChatLoaded(List.from(_messages)));
     } catch (e) {
       emit(ChatError('Failed to load chat history: ${e.toString()}'));
@@ -66,7 +74,23 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(ChatLoaded(List.from(_messages)));
 
     // Save AI response to repository
-    await _chatRepository.addMessage(aiResponse.text, aiResponse.isUser);
+    int message_id = await _chatRepository.addMessage(
+      aiResponse.text,
+      aiResponse.isUser,
+    );
+
+    if (aiResponse.flashcards.isNotEmpty) {
+      for (var card in aiResponse.flashcards) {
+        _flashcardRepository.addFlashcard(card);
+      }
+    }
+
+    if (aiResponse.grammarNotes.isNotEmpty) {
+      for (var note in aiResponse.grammarNotes) {
+        note.messageId = message_id;
+        _grammarRepository.addGrammarCard(note);
+      }
+    }
   }
 
   static String get _openAiApiKey => dotenv.env['OPENAI_API_KEY'] ?? '';
@@ -214,17 +238,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           .toList();
     }
 
-    if (message.flashcards.isNotEmpty) {
-      for (var card in message.flashcards) {
-        _flashcardRepository.addFlashcard(card);
-      }
-    }
-
-    if (message.grammarNotes.isNotEmpty) {
-      for (var note in message.grammarNotes) {
-        _grammarRepository.addGrammarCard(note);
-      }
-    }
     return message;
   }
 

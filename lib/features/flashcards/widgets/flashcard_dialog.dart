@@ -4,7 +4,7 @@ import 'package:language_tutor/features/flashcards/bloc/flashcard_bloc.dart';
 import 'package:language_tutor/features/flashcards/bloc/flashcard_event.dart';
 import 'package:language_tutor/data/models/flashcard.dart';
 
-class FlashcardDialog extends StatelessWidget {
+class FlashcardDialog extends StatefulWidget {
   const FlashcardDialog({
     super.key,
     required this.formKey,
@@ -21,25 +21,38 @@ class FlashcardDialog extends StatelessWidget {
   final Flashcard? flashcard;
 
   @override
+  State<FlashcardDialog> createState() => _FlashcardDialogState();
+}
+
+class _FlashcardDialogState extends State<FlashcardDialog> {
+  @override
+  void initState() {
+    super.initState();
+    widget.frontController.text = widget.flashcard?.front ?? '';
+    widget.backController.text = widget.flashcard?.back ?? '';
+    widget.contextController.text = widget.flashcard?.context ?? '';
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Row(
         children: [
           Icon(Icons.add_card, color: Colors.blue.shade600),
           const SizedBox(width: 8),
-          const Text('Add Flashcard'),
+          Text('${widget.flashcard != null ? 'Edit' : 'Add'} Flashcard'),
         ],
       ),
       content: SingleChildScrollView(
         child: Form(
-          key: formKey,
+          key: widget.formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextFormField(
-                controller: frontController,
+                controller: widget.frontController,
                 decoration: InputDecoration(
-                  labelText: 'Front (Italian)',
+                  labelText: 'Front',
                   prefixIcon: const Icon(Icons.translate),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -50,9 +63,9 @@ class FlashcardDialog extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               TextFormField(
-                controller: backController,
+                controller: widget.backController,
                 decoration: InputDecoration(
-                  labelText: 'Back (English)',
+                  labelText: 'Back ',
                   prefixIcon: const Icon(Icons.language),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -63,7 +76,7 @@ class FlashcardDialog extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               TextFormField(
-                controller: contextController,
+                controller: widget.contextController,
                 decoration: InputDecoration(
                   labelText: 'Context (optional)',
                   prefixIcon: const Icon(Icons.short_text),
@@ -92,21 +105,21 @@ class FlashcardDialog extends StatelessWidget {
             ),
           ),
           onPressed: () {
-            if (formKey.currentState!.validate()) {
-              if (flashcard != null) {
+            if (widget.formKey.currentState!.validate()) {
+              if (widget.flashcard != null) {
                 // Update existing flashcard
-                Flashcard updatedCard = flashcard!.copyWith(
-                  front: frontController.text.trim(),
-                  back: backController.text.trim(),
-                  context: contextController.text.trim(),
+                Flashcard updatedCard = widget.flashcard!.copyWith(
+                  front: widget.frontController.text.trim(),
+                  back: widget.backController.text.trim(),
+                  context: widget.contextController.text.trim(),
                 );
                 context.read<FlashcardBloc>().add(UpdateFlashcard(updatedCard));
               } else {
                 // Add new flashcard
                 Flashcard newCard = Flashcard(
-                  front: frontController.text.trim(),
-                  back: backController.text.trim(),
-                  context: contextController.text.trim(),
+                  front: widget.frontController.text.trim(),
+                  back: widget.backController.text.trim(),
+                  context: widget.contextController.text.trim(),
                   nextReview: DateTime.now(),
                   interval: 1,
                   easeFactor: 2.5,
@@ -117,7 +130,7 @@ class FlashcardDialog extends StatelessWidget {
               Navigator.of(context).pop();
             }
           },
-          child: Text(flashcard != null ? 'Save' : 'Add'),
+          child: Text(widget.flashcard != null ? 'Save' : 'Add'),
         ),
       ],
     );
