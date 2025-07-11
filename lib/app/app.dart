@@ -148,36 +148,40 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
                 ),
               ],
             ),
-            Positioned(
-              top: -25,
-              child: FloatingActionButton(
-                shape: const CircleBorder(),
-                backgroundColor: Colors.blue.shade400,
-                onPressed: () {
-                  final frontController = TextEditingController();
-                  final backController = TextEditingController();
-                  final contextController = TextEditingController();
-                  final formKey = GlobalKey<FormState>();
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return FlashcardDialog(
-                        formKey: formKey,
-                        frontController: frontController,
-                        backController: backController,
-                        contextController: contextController,
-                      );
-                    },
-                  );
-                },
-                child: Icon(Icons.add, color: Colors.white),
+
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.decelerate,
+              top: _bottomBarController.isBarVisible ? -25 : 0,
+              child: Positioned(
+                child: FloatingActionButton(
+                  shape: const CircleBorder(),
+                  backgroundColor: Colors.blue.shade400,
+                  onPressed: () {
+                    final frontController = TextEditingController();
+                    final backController = TextEditingController();
+                    final contextController = TextEditingController();
+                    final formKey = GlobalKey<FormState>();
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return FlashcardDialog(
+                          formKey: formKey,
+                          frontController: frontController,
+                          backController: backController,
+                          contextController: contextController,
+                        );
+                      },
+                    );
+                  },
+                  child: Icon(Icons.add, color: Colors.white),
+                ),
               ),
             ),
           ],
         ),
         body: (context, controller) => TabBarView(
           controller: _tabController,
-          // dragStartBehavior: DragStartBehavior.down, // Remove or import if needed
           physics: const BouncingScrollPhysics(),
           children: const [
             ChatPage(),

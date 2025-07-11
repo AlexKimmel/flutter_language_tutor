@@ -22,31 +22,6 @@ class _GrammarPageState extends State<GrammarPage> {
     context.read<GrammarCardBloc>().add(LoadGrammarCards());
   }
 
-  void _showGrammarCardDetail(GrammarCard card) {
-    // Navigator.of(context).push(
-    //   PageRouteBuilder(
-    //     pageBuilder: (context, animation, secondaryAnimation) =>
-    //         GrammarCardDetailPage(card: card),
-    //     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-    //       const begin = Offset(0.0, 1.0);
-    //       const end = Offset.zero;
-    //       const curve = Curves.easeInOutCubic;
-
-    //       var tween = Tween(
-    //         begin: begin,
-    //         end: end,
-    //       ).chain(CurveTween(curve: curve));
-
-    //       return SlideTransition(
-    //         position: animation.drive(tween),
-    //         child: child,
-    //       );
-    //     },
-    //     transitionDuration: const Duration(milliseconds: 300),
-    //   ),
-    // );
-  }
-
   Widget _buildCompactGrammarCard(GrammarCard card) {
     return CustomPopup(
       content: GrammarCardDetailPage(card: card),
@@ -63,12 +38,6 @@ class _GrammarPageState extends State<GrammarPage> {
           children: [
             Row(
               children: [
-                // Icon(
-                //   Icons.lightbulb_outline,
-                //   size: 24,
-                //   color: Colors.blue.shade700,
-                // ),
-                const SizedBox(width: 6.0),
                 Expanded(
                   child: Text(
                     card.title,
@@ -90,13 +59,6 @@ class _GrammarPageState extends State<GrammarPage> {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            // const SizedBox(height: 4.0),
-            // Text(
-            //   card.explanation,
-            //   style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-            //   maxLines: 2,
-            //   overflow: TextOverflow.ellipsis,
-            // ),
           ],
         ),
       ),

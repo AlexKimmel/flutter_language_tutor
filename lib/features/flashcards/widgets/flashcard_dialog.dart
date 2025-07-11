@@ -11,12 +11,14 @@ class FlashcardDialog extends StatelessWidget {
     required this.frontController,
     required this.backController,
     required this.contextController,
+    this.flashcard,
   });
 
   final GlobalKey<FormState> formKey;
   final TextEditingController frontController;
   final TextEditingController backController;
   final TextEditingController contextController;
+  final Flashcard? flashcard;
 
   @override
   Widget build(BuildContext context) {
@@ -91,20 +93,31 @@ class FlashcardDialog extends StatelessWidget {
           ),
           onPressed: () {
             if (formKey.currentState!.validate()) {
-              Flashcard newCard = Flashcard(
-                front: frontController.text.trim(),
-                back: backController.text.trim(),
-                context: contextController.text.trim(),
-                nextReview: DateTime.now(),
-                interval: 1,
-                easeFactor: 2.5,
-                repetitions: 0,
-              );
-              context.read<FlashcardBloc>().add(AddFlashcard(newCard));
+              if (flashcard != null) {
+                // Update existing flashcard
+                Flashcard updatedCard = flashcard!.copyWith(
+                  front: frontController.text.trim(),
+                  back: backController.text.trim(),
+                  context: contextController.text.trim(),
+                );
+                context.read<FlashcardBloc>().add(UpdateFlashcard(updatedCard));
+              } else {
+                // Add new flashcard
+                Flashcard newCard = Flashcard(
+                  front: frontController.text.trim(),
+                  back: backController.text.trim(),
+                  context: contextController.text.trim(),
+                  nextReview: DateTime.now(),
+                  interval: 1,
+                  easeFactor: 2.5,
+                  repetitions: 0,
+                );
+                context.read<FlashcardBloc>().add(AddFlashcard(newCard));
+              }
               Navigator.of(context).pop();
             }
           },
-          child: const Text('Add'),
+          child: Text(flashcard != null ? 'Save' : 'Add'),
         ),
       ],
     );

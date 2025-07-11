@@ -47,4 +47,26 @@ class Flashcard {
       'repetitions': repetitions,
     };
   }
+
+  Flashcard copyWith({
+    int? id,
+    String? front,
+    String? back,
+    String? context,
+    DateTime? nextReview,
+    int? interval,
+    double? easeFactor,
+    int? repetitions,
+  }) {
+    return Flashcard(
+      id: id ?? this.id,
+      front: front ?? this.front,
+      back: back ?? this.back,
+      context: context ?? this.context,
+      nextReview: nextReview ?? this.nextReview,
+      interval: interval ?? this.interval,
+      easeFactor: easeFactor ?? this.easeFactor,
+      repetitions: repetitions ?? this.repetitions,
+    );
+  }
 }

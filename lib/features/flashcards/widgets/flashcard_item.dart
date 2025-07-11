@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:language_tutor/features/flashcards/bloc/flashcard_bloc.dart';
 import 'package:language_tutor/features/flashcards/bloc/flashcard_event.dart';
 import 'package:language_tutor/data/models/flashcard.dart';
+import 'package:language_tutor/features/flashcards/widgets/flashcard_dialog.dart';
 
 class FlashcardItem extends StatefulWidget {
   const FlashcardItem({super.key, required this.flashcard});
@@ -52,64 +54,89 @@ class _FlashcardItemState extends State<FlashcardItem>
   Widget build(BuildContext context) {
     final flashcard = widget.flashcard;
     // Set a fixed height for the card to keep the size consistent
-    const double cardHeight = 140;
-    return Slidable(
-      direction: Axis.horizontal,
-      startActionPane: ActionPane(
-        motion: const ScrollMotion(),
-        children: [
-          SlidableAction(
-            onPressed: (context) {
-              context.read<FlashcardBloc>().add(
-                DeleteFlashcard(
-                  flashcard.id as int,
-                  flashcard: widget.flashcard,
+
+    return GestureDetector(
+      onTap: _flipCard,
+      onLongPress: () {
+        // show dialog to edit or delete the flashcard
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('Flashcard Options'),
+              content: Text('What would you like to do with this flashcard?'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        // Open the dialog to edit the flashcard
+
+                        final frontController = TextEditingController();
+                        final backController = TextEditingController();
+                        final contextController = TextEditingController();
+                        final formKey = GlobalKey<FormState>();
+                        return FlashcardDialog(
+                          flashcard: flashcard,
+                          formKey: formKey,
+                          frontController: frontController,
+                          backController: backController,
+                          contextController: contextController,
+                        );
+                      },
+                    );
+                  },
+                  child: Text('Edit'),
                 ),
-              );
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Delete ${flashcard.front}')),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    context.read<FlashcardBloc>().add(
+                      DeleteFlashcard(flashcard.id as int),
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Deleted "${flashcard.front}"'),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  child: Text('Delete', style: TextStyle(color: Colors.red)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+      child: Card(
+        elevation: 1,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: SizedBox(
+          width: double.infinity,
+
+          child: AnimatedBuilder(
+            animation: _animation,
+            builder: (context, child) {
+              final angle = _animation.value * 3.1415926535897932;
+              final isBack = _animation.value >= 0.5;
+              // For the back, flip the content so text is not mirrored
+              return Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.identity()
+                  ..setEntry(3, 2, 0.001)
+                  ..rotateY(angle),
+                child: isBack
+                    ? Transform(
+                        alignment: Alignment.center,
+                        transform: Matrix4.identity()
+                          ..rotateY(3.1415926535897932),
+                        child: _buildBack(context, flashcard),
+                      )
+                    : _buildFront(context, flashcard),
               );
             },
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-            icon: Icons.delete,
-            label: 'Delete',
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ],
-      ),
-      child: GestureDetector(
-        onTap: _flipCard,
-        child: Card(
-          elevation: 1,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: SizedBox(
-            width: double.infinity,
-            height: cardHeight,
-            child: AnimatedBuilder(
-              animation: _animation,
-              builder: (context, child) {
-                final angle = _animation.value * 3.1415926535897932;
-                final isBack = _animation.value >= 0.5;
-                // For the back, flip the content so text is not mirrored
-                return Transform(
-                  alignment: Alignment.center,
-                  transform: Matrix4.identity()
-                    ..setEntry(3, 2, 0.001)
-                    ..rotateY(angle),
-                  child: isBack
-                      ? Transform(
-                          alignment: Alignment.center,
-                          transform: Matrix4.identity()
-                            ..rotateY(3.1415926535897932),
-                          child: _buildBack(context, flashcard),
-                        )
-                      : _buildFront(context, flashcard),
-                );
-              },
-            ),
           ),
         ),
       ),
@@ -144,12 +171,24 @@ class _FlashcardItemState extends State<FlashcardItem>
           if (flashcard.context.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 16.0),
-              child: Text(
-                flashcard.context,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
-                textAlign: TextAlign.center,
+              child: MarkdownBody(
+                data: flashcard.context,
+                styleSheet: MarkdownStyleSheet(
+                  p: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                  strong: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  em: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 14,
+                    fontStyle: FontStyle.italic,
+                  ),
+                  textAlign: WrapAlignment.center,
+                ),
+                shrinkWrap: true,
+                selectable: false,
               ),
             ),
         ],

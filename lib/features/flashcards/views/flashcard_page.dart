@@ -4,7 +4,6 @@ import 'package:language_tutor/features/flashcards/widgets/flashcard_item.dart';
 import '../bloc/flashcard_bloc.dart';
 import '../bloc/flashcard_state.dart';
 import '../bloc/flashcard_event.dart';
-import '../../../data/models/flashcard.dart';
 
 class FlashcardPage extends StatefulWidget {
   const FlashcardPage({super.key});
@@ -49,7 +48,10 @@ class _FlashcardPageState extends State<FlashcardPage> {
             return const Center(child: CircularProgressIndicator());
           } else if (state is FlashcardLoaded) {
             if (state.flashcards.isEmpty) return _emptyFlashcardList();
-            return ListView.builder(
+            return GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+              ),
               itemCount: state.flashcards.length,
               itemBuilder: (context, index) {
                 return FlashcardItem(flashcard: state.flashcards[index]);

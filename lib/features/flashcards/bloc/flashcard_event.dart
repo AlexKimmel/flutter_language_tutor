@@ -19,7 +19,7 @@ class UpdateFlashcard extends FlashcardEvent {
 
 class DeleteFlashcard extends FlashcardEvent {
   final int id;
-  DeleteFlashcard(this.id, {required Flashcard flashcard});
+  DeleteFlashcard(this.id);
 }
 
 class ReviewFlashcard extends FlashcardEvent {
