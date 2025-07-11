@@ -33,6 +33,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(ChatLoading());
     try {
       final chatHistory = await _chatRepository.getChatHistory();
+      _messages.clear();
+
       for (var msg in chatHistory) {
         ChatMessage message = ChatMessage.fromMap(msg);
         if (!_messages.contains(message)) {
@@ -74,7 +76,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(ChatLoaded(List.from(_messages)));
 
     // Save AI response to repository
-    int message_id = await _chatRepository.addMessage(
+    int messageId = await _chatRepository.addMessage(
       aiResponse.text,
       aiResponse.isUser,
     );
@@ -87,7 +89,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
     if (aiResponse.grammarNotes.isNotEmpty) {
       for (var note in aiResponse.grammarNotes) {
-        note.messageId = message_id;
+        note.messageId = messageId;
         _grammarRepository.addGrammarCard(note);
       }
     }

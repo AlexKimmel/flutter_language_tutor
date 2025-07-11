@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_popup/flutter_popup.dart';
 import 'package:language_tutor/data/models/chat_messages.dart';
+import 'package:language_tutor/data/models/flashcard.dart';
 import 'package:language_tutor/features/chat/bloc/chat_bloc.dart';
 import 'package:language_tutor/features/chat/bloc/chat_event.dart';
 import 'package:language_tutor/features/chat/bloc/chat_state.dart';
 import 'package:language_tutor/features/chat/widgets/ai_chat_bubble.dart';
 import 'package:language_tutor/features/chat/widgets/user_chat_bubbles.dart';
+import 'package:language_tutor/features/flashcards/bloc/flashcard_repository.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -17,12 +19,24 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final ScrollController _scrollController = ScrollController();
-
+  final FlashcardRepository _flashcardRepository = FlashcardRepository();
+  late List<Flashcard> _vocabulary = [];
   @override
   void initState() {
     super.initState();
-    // Load chat history when the page is initialized
+    _loadVocabulary();
     context.read<ChatBloc>().add(LoadChatHistory());
+  }
+
+  void _loadVocabulary() async {
+    final known = await _flashcardRepository.getKnownFlashcards();
+    final learning = await _flashcardRepository
+        .getCurrentlyLearningFlashcards();
+    setState(() {
+      _vocabulary = [...known, ...learning];
+    });
+    print(known);
+    print('Loaded vocabulary: ${_vocabulary.map((f) => f.front).toList()}');
   }
 
   void _handleSubmitted(String text) {
@@ -49,62 +63,144 @@ class _ChatPageState extends State<ChatPage> {
     if (message.isUser) {
       return UserCatBubble(text: message.text);
     }
-    Widget text = _buildText(message);
+
+    Widget text = _buildText(message, knownWords: _vocabulary);
     return AiChatBubble(message: message, context: context, text: text);
   }
 
-  Widget _buildText(ChatMessage message) {
-    final pattern = RegExp(r'\[\*\*(.*?)\*\*\]\(flashcard:(.*?)\)');
-    final matches = pattern.allMatches(message.text);
+  Widget _buildText(
+    ChatMessage message, {
+    List<Flashcard> knownWords = const [],
+  }) {
+    final flashcardPattern = RegExp(r'\[\*\*(.*?)\*\*\]\(flashcard:(.*?)\)');
 
-    int currentIndex = 0;
-    List<Widget> widgets = [];
+    // Extract the actual words from flashcards (front side = Italian words)
+    final wordStrings = knownWords.map((flashcard) => flashcard.front).toList();
 
-    for (final match in matches) {
-      final matchStart = match.start;
-      final matchEnd = match.end;
+    // Debug: Print the words being searched for
+    if (wordStrings.isNotEmpty) {
+      print('Searching for words: $wordStrings');
+    }
 
-      if (currentIndex < matchStart) {
-        final normalText = message.text.substring(currentIndex, matchStart);
-        widgets.add(Text(normalText, style: const TextStyle(fontSize: 16)));
-      }
+    // Create regex pattern that matches Italian words (including accented characters)
+    final wordPattern = wordStrings.isNotEmpty
+        ? RegExp(
+            r"\b(" +
+                wordStrings.map((word) => RegExp.escape(word)).join('|') +
+                r")\b",
+            caseSensitive: false,
+            unicode: true,
+          )
+        : null;
 
-      final word = match.group(1)!;
-      final translation = match.group(2)!;
+    List<InlineSpan> spans = [];
+    int index = 0;
 
-      widgets.add(
-        CustomPopup(
-          content: Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Text(translation, style: const TextStyle(fontSize: 14)),
-          ),
-          child: GestureDetector(
-            child: Text(
-              word,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                decoration: TextDecoration.underline,
-                decorationStyle: TextDecorationStyle.dotted,
-                color: Colors.blue,
+    while (index < message.text.length) {
+      final flashMatch = flashcardPattern.matchAsPrefix(message.text, index);
+      if (flashMatch != null) {
+        if (index < flashMatch.start) {
+          spans.add(
+            TextSpan(text: message.text.substring(index, flashMatch.start)),
+          );
+        }
+
+        final word = flashMatch.group(1)!;
+        final translation = flashMatch.group(2)!;
+
+        spans.add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.baseline,
+            baseline: TextBaseline.alphabetic,
+            child: CustomPopup(
+              content: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Text(translation, style: const TextStyle(fontSize: 14)),
+              ),
+              child: GestureDetector(
+                child: Text(
+                  word,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    decoration: TextDecoration.underline,
+                    decorationStyle: TextDecorationStyle.dotted,
+                    color: Colors.blue,
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      currentIndex = matchEnd;
+        index = flashMatch.end;
+      } else if (wordPattern != null) {
+        final wordMatch = wordPattern.matchAsPrefix(message.text, index);
+        if (wordMatch != null) {
+          if (index < wordMatch.start) {
+            spans.add(
+              TextSpan(text: message.text.substring(index, wordMatch.start)),
+            );
+          }
+
+          final matchedWord = wordMatch.group(0)!;
+
+          spans.add(
+            WidgetSpan(
+              alignment: PlaceholderAlignment.baseline,
+              baseline: TextBaseline.alphabetic,
+              child: CustomPopup(
+                content: Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Text(
+                    knownWords
+                        .firstWhere(
+                          (f) => f.front == matchedWord,
+                          orElse: () => Flashcard(
+                            front: matchedWord,
+                            back: '',
+                            context: '',
+                            nextReview: DateTime.now(),
+                            interval: 1,
+                            repetitions: 0,
+                            easeFactor: 2.5,
+                          ),
+                        )
+                        .back,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ),
+                child: GestureDetector(
+                  child: Text(
+                    matchedWord,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
+                      decorationStyle: TextDecorationStyle.dotted,
+                      color: Colors.green,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+
+          index = wordMatch.end;
+        } else {
+          spans.add(TextSpan(text: message.text[index]));
+          index++;
+        }
+      } else {
+        spans.add(TextSpan(text: message.text[index]));
+        index++;
+      }
     }
 
-    if (currentIndex < message.text.length) {
-      widgets.add(
-        Text(
-          message.text.substring(currentIndex),
-          style: const TextStyle(fontSize: 16),
-        ),
-      );
-    }
-
-    return Wrap(spacing: 4, runSpacing: 4, children: widgets);
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(fontSize: 16, color: Colors.black),
+        children: spans,
+      ),
+    );
   }
 
   Widget _buildTextComposer() {

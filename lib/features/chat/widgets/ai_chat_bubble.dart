@@ -16,7 +16,7 @@ class AiChatBubble extends StatelessWidget {
 
   Widget _buildGrammarNotes(GrammarCard notes) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
       child: Center(
         child: Container(
           padding: const EdgeInsets.all(4.0),
@@ -54,14 +54,16 @@ class AiChatBubble extends StatelessWidget {
                   text: TextSpan(
                     style: TextStyle(fontSize: 14, color: Colors.grey.shade800),
                     children: [
-                      TextSpan(
-                        text: '"${notes.example}"\n',
-                        style: const TextStyle(fontStyle: FontStyle.italic),
-                      ),
-                      TextSpan(
-                        text: "${notes.explanation}\n",
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                      if (notes.example.isNotEmpty)
+                        TextSpan(
+                          text: '"${notes.example}"\n',
+                          style: const TextStyle(fontStyle: FontStyle.italic),
+                        ),
+                      if (notes.explanation.isNotEmpty)
+                        TextSpan(
+                          text: "${notes.explanation}\n",
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       if (notes.text.isNotEmpty)
                         TextSpan(text: '\n${notes.text}'),
                     ],
