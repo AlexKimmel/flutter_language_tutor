@@ -18,14 +18,30 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  final ScrollController _scrollController = ScrollController();
+  late ScrollController _scrollController;
   final FlashcardRepository _flashcardRepository = FlashcardRepository();
   late List<Flashcard> _vocabulary = [];
+  bool _showScrollDownButton = false;
+
   @override
   void initState() {
     super.initState();
     _loadVocabulary();
     context.read<ChatBloc>().add(LoadChatHistory());
+    _scrollController = ScrollController();
+    _scrollController.addListener(() {
+      final threshold = 100.0;
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      final currentScroll = _scrollController.position.pixels;
+
+      final shouldShow = currentScroll < maxScroll - threshold;
+
+      if (shouldShow != _showScrollDownButton) {
+        setState(() {
+          _showScrollDownButton = shouldShow;
+        });
+      }
+    });
   }
 
   void _loadVocabulary() async {
@@ -35,8 +51,6 @@ class _ChatPageState extends State<ChatPage> {
     setState(() {
       _vocabulary = [...known, ...learning];
     });
-    print(known);
-    print('Loaded vocabulary: ${_vocabulary.map((f) => f.front).toList()}');
   }
 
   void _handleSubmitted(String text) {
@@ -49,13 +63,15 @@ class _ChatPageState extends State<ChatPage> {
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent + 50,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
     });
   }
 
@@ -76,11 +92,6 @@ class _ChatPageState extends State<ChatPage> {
 
     // Extract the actual words from flashcards (front side = Italian words)
     final wordStrings = knownWords.map((flashcard) => flashcard.front).toList();
-
-    // Debug: Print the words being searched for
-    if (wordStrings.isNotEmpty) {
-      print('Searching for words: $wordStrings');
-    }
 
     // Create regex pattern that matches Italian words (including accented characters)
     final wordPattern = wordStrings.isNotEmpty
@@ -154,7 +165,9 @@ class _ChatPageState extends State<ChatPage> {
                   child: Text(
                     knownWords
                         .firstWhere(
-                          (f) => f.front == matchedWord,
+                          (f) =>
+                              f.front.toLowerCase() ==
+                              matchedWord.toLowerCase(),
                           orElse: () => Flashcard(
                             front: matchedWord,
                             back: '',
@@ -273,7 +286,6 @@ class _ChatPageState extends State<ChatPage> {
             child: BlocListener<ChatBloc, ChatState>(
               listener: (context, state) {
                 if (state is ChatLoaded) {
-                  // Auto-scroll to bottom when new messages are loaded
                   _scrollToBottom();
                 }
               },
@@ -343,12 +355,35 @@ class _ChatPageState extends State<ChatPage> {
                         ),
                       );
                     } else {
-                      return ListView.builder(
-                        controller: _scrollController,
-                        itemCount: state.messages.length,
-                        itemBuilder: (context, index) {
-                          return _buildMessage(state.messages[index]);
-                        },
+                      return Stack(
+                        children: [
+                          ListView.builder(
+                            controller: _scrollController,
+                            itemCount: state.messages.length,
+                            itemBuilder: (context, index) {
+                              return _buildMessage(state.messages[index]);
+                            },
+                          ),
+
+                          AnimatedPositioned(
+                            bottom: _showScrollDownButton ? 10 : -100,
+                            right: 4,
+                            duration: const Duration(milliseconds: 150),
+                            child: IconButton(
+                              onPressed: () {
+                                _scrollToBottom();
+                              },
+                              icon: CircleAvatar(
+                                backgroundColor: Colors.blue.shade600,
+                                child: const Icon(
+                                  Icons.arrow_downward,
+                                  color: Colors.white,
+                                  size: 30,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       );
                     }
                   }
