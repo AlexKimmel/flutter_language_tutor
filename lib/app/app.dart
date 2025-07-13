@@ -27,13 +27,20 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     _bottomBarController = BottomBarController();
-    _tabController = TabController(length: 4, vsync: this, initialIndex: 1);
+    _tabController = TabController(length: 4, vsync: this, initialIndex: 0);
     _tabController.animation?.addListener(() {
       final value = _tabController.animation!.value.round();
       if (value != _currentPage && mounted) {
         setState(() {
           _currentPage = value;
         });
+      }
+    });
+
+    // Hide the bottom bar initially since we start on page 0
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_currentPage == 0) {
+        _bottomBarController.hideBar();
       }
     });
   }
@@ -152,30 +159,28 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
             AnimatedPositioned(
               duration: const Duration(milliseconds: 150),
               curve: Curves.decelerate,
-              top: _currentPage == 0 ? 0 : -25,
-              child: Positioned(
-                child: FloatingActionButton(
-                  shape: const CircleBorder(),
-                  backgroundColor: Colors.blue.shade400,
-                  onPressed: () {
-                    final frontController = TextEditingController();
-                    final backController = TextEditingController();
-                    final contextController = TextEditingController();
-                    final formKey = GlobalKey<FormState>();
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return FlashcardDialog(
-                          formKey: formKey,
-                          frontController: frontController,
-                          backController: backController,
-                          contextController: contextController,
-                        );
-                      },
-                    );
-                  },
-                  child: Icon(Icons.add, color: Colors.white),
-                ),
+              bottom: _currentPage == 0 ? -25 : 20,
+              child: FloatingActionButton(
+                shape: const CircleBorder(),
+                backgroundColor: Colors.blue.shade400,
+                onPressed: () {
+                  final frontController = TextEditingController();
+                  final backController = TextEditingController();
+                  final contextController = TextEditingController();
+                  final formKey = GlobalKey<FormState>();
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return FlashcardDialog(
+                        formKey: formKey,
+                        frontController: frontController,
+                        backController: backController,
+                        contextController: contextController,
+                      );
+                    },
+                  );
+                },
+                child: Icon(Icons.add, color: Colors.white),
               ),
             ),
           ],

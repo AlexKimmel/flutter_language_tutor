@@ -84,7 +84,7 @@ class FlashcardRepository {
     final db = await database;
     final maps = await db.query(
       'flashcards',
-      where: 'repetitions >= 0',
+      where: 'repetitions > 0',
       orderBy: 'repetitions DESC, nextReview DESC',
       limit: limit,
     );

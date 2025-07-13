@@ -50,7 +50,8 @@ class _ChatPageState extends State<ChatPage> {
     final learning = await _flashcardRepository
         .getCurrentlyLearningFlashcards();
     setState(() {
-      _vocabulary = [...known, ...learning];
+      //_vocabulary = [...known, ...learning];
+      _vocabulary = [...learning];
     });
   }
 
