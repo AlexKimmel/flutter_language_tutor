@@ -7,6 +7,7 @@ import 'package:language_tutor/features/chat/bloc/chat_bloc.dart';
 import 'package:language_tutor/features/chat/bloc/chat_event.dart';
 import 'package:language_tutor/features/chat/bloc/chat_state.dart';
 import 'package:language_tutor/features/chat/widgets/ai_chat_bubble.dart';
+import 'package:language_tutor/features/chat/widgets/laoding_chat_bubble.dart';
 import 'package:language_tutor/features/chat/widgets/user_chat_bubbles.dart';
 import 'package:language_tutor/features/flashcards/bloc/flashcard_repository.dart';
 
@@ -66,7 +67,7 @@ class _ChatPageState extends State<ChatPage> {
       Future.delayed(const Duration(milliseconds: 100), () {
         if (_scrollController.hasClients) {
           _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent + 50,
+            _scrollController.position.maxScrollExtent,
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOut,
           );
@@ -78,6 +79,10 @@ class _ChatPageState extends State<ChatPage> {
   Widget _buildMessage(ChatMessage message) {
     if (message.isUser) {
       return UserCatBubble(text: message.text);
+    }
+
+    if (message.text == '[LOADING]') {
+      return LaodingChatBubble();
     }
 
     Widget text = _buildText(message, knownWords: _vocabulary);
@@ -239,7 +244,7 @@ class _ChatPageState extends State<ChatPage> {
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey.shade300),
-                    borderRadius: BorderRadius.circular(25.0),
+                    borderRadius: BorderRadius.circular(500.0),
                   ),
                   child: TextField(
                     controller: chatBloc.textController,
@@ -262,6 +267,9 @@ class _ChatPageState extends State<ChatPage> {
                 onPressed: () => _handleSubmitted(chatBloc.textController.text),
                 mini: true,
                 backgroundColor: Colors.blue.shade600,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16.0),
+                ),
                 child: const Icon(Icons.send, color: Colors.white),
               ),
             ],

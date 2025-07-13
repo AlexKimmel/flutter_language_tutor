@@ -65,12 +65,21 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     );
 
     _messages.add(userMessage);
+
+    // Add message for loading state
+    _messages.add(
+      ChatMessage(text: '[LOADING]', isUser: false, timestamp: DateTime.now()),
+    );
     emit(ChatLoaded(List.from(_messages)));
 
     // Save user message to repository
     await _chatRepository.addMessage(userMessage.text, userMessage.isUser);
-
     final aiResponse = await _generateResponse(event.message);
+
+    // Remove loading message
+    _messages.removeWhere((msg) => msg.text == '[LOADING]');
+
+    // Add AI response to messages
     _messages.add(aiResponse);
 
     emit(ChatLoaded(List.from(_messages)));

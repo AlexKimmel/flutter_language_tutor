@@ -15,7 +15,7 @@ class App extends StatefulWidget {
 class _AppState extends State<App> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late BottomBarController _bottomBarController;
-  int _currentPage = 1;
+  int _currentPage = 0;
   final List<Color> _colors = [
     Colors.blue.shade100,
     Colors.blue.shade200,
