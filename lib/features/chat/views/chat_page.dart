@@ -32,10 +32,8 @@ class _ChatPageState extends State<ChatPage> {
     _scrollController = ScrollController();
     _scrollController.addListener(() {
       final threshold = 100.0;
-      final maxScroll = _scrollController.position.maxScrollExtent;
       final currentScroll = _scrollController.position.pixels;
-
-      final shouldShow = currentScroll < maxScroll - threshold;
+      final shouldShow = currentScroll > threshold;
 
       if (shouldShow != _showScrollDownButton) {
         setState(() {
@@ -46,7 +44,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _loadVocabulary() async {
-    final known = await _flashcardRepository.getKnownFlashcards();
+    //final known = await _flashcardRepository.getKnownFlashcards();
     final learning = await _flashcardRepository
         .getCurrentlyLearningFlashcards();
     setState(() {
@@ -65,15 +63,13 @@ class _ChatPageState extends State<ChatPage> {
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (_scrollController.hasClients) {
-          _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-        }
-      });
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          0.0, // In reverse ListView, 0 is at the bottom (most recent)
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+        );
+      }
     });
   }
 
@@ -295,7 +291,10 @@ class _ChatPageState extends State<ChatPage> {
             child: BlocListener<ChatBloc, ChatState>(
               listener: (context, state) {
                 if (state is ChatLoaded) {
-                  _scrollToBottom();
+                  // Add a small delay to ensure ListView has rendered new items
+                  Future.delayed(const Duration(milliseconds: 50), () {
+                    _scrollToBottom();
+                  });
                 }
               },
               child: BlocBuilder<ChatBloc, ChatState>(
@@ -368,9 +367,15 @@ class _ChatPageState extends State<ChatPage> {
                         children: [
                           ListView.builder(
                             controller: _scrollController,
+                            reverse: true,
                             itemCount: state.messages.length,
                             itemBuilder: (context, index) {
-                              return _buildMessage(state.messages[index]);
+                              // Since we're using reverse, we need to reverse the index
+                              final messageIndex =
+                                  state.messages.length - 1 - index;
+                              return _buildMessage(
+                                state.messages[messageIndex],
+                              );
                             },
                           ),
 
