@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_popup/flutter_popup.dart';
@@ -7,6 +8,7 @@ import 'package:language_tutor/features/chat/bloc/chat_bloc.dart';
 import 'package:language_tutor/features/chat/bloc/chat_event.dart';
 import 'package:language_tutor/features/chat/bloc/chat_state.dart';
 import 'package:language_tutor/features/chat/widgets/ai_chat_bubble.dart';
+import 'package:language_tutor/features/chat/widgets/chat_date_bubble.dart';
 import 'package:language_tutor/features/chat/widgets/laoding_chat_bubble.dart';
 import 'package:language_tutor/features/chat/widgets/user_chat_bubbles.dart';
 import 'package:language_tutor/features/flashcards/bloc/flashcard_repository.dart';
@@ -71,17 +73,34 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  Widget _buildMessage(ChatMessage message) {
-    if (message.isUser) {
-      return UserCatBubble(text: message.text);
-    }
-
+  Widget _buildMessage(ChatMessage message, {ChatMessage? previousMessage}) {
     if (message.text == '[LOADING]') {
       return LaodingChatBubble();
     }
 
+    // Check if we need to show date bubble
+    bool shouldShowDate = false;
+    if (previousMessage != null) {
+      shouldShowDate = !_isSameDay(
+        message.timestamp,
+        previousMessage.timestamp,
+      );
+    } else {
+      // Show date for the first message in the conversation
+      shouldShowDate = true;
+    }
+
     Widget text = _buildText(message, knownWords: _vocabulary);
-    return AiChatBubble(message: message, context: context, text: text);
+
+    return Column(
+      children: [
+        if (shouldShowDate) ChatDateBubble(date: message.timestamp),
+        if (!message.isUser)
+          AiChatBubble(message: message, context: context, text: text)
+        else
+          UserChatBubble(text: message.text),
+      ],
+    );
   }
 
   Widget _buildText(
@@ -368,8 +387,19 @@ class _ChatPageState extends State<ChatPage> {
                               // Since we're using reverse, we need to reverse the index
                               final messageIndex =
                                   state.messages.length - 1 - index;
+                              final message = state.messages[messageIndex];
+
+                              // Get the previous message in UI order (the one rendered before this one)
+                              // In a reversed ListView, this is the chronologically LATER message
+                              ChatMessage? previousMessage;
+                              if (messageIndex < state.messages.length - 1) {
+                                previousMessage =
+                                    state.messages[messageIndex + 1];
+                              }
+
                               return _buildMessage(
-                                state.messages[messageIndex],
+                                message,
+                                previousMessage: previousMessage,
                               );
                             },
                           ),
@@ -411,5 +441,11 @@ class _ChatPageState extends State<ChatPage> {
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  bool _isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
   }
 }

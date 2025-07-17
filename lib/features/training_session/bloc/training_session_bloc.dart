@@ -23,6 +23,12 @@ class TrainingSessionBloc
     final newCards = await repository.getNewFlashcards(limit: 10);
 
     final all = [...due, ...newCards];
+
+    if (all.isEmpty) {
+      emit(TrainingComplet());
+      return;
+    }
+
     final session = TrainingSession(
       queue: all.map((f) => f.id!).toList(),
       cards: {for (var f in all) f.id!: f},

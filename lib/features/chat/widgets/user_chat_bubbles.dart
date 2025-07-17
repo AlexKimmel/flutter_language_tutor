@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class UserCatBubble extends StatelessWidget {
-  const UserCatBubble({super.key, required this.text});
+class UserChatBubble extends StatelessWidget {
+  const UserChatBubble({super.key, required this.text});
 
   final String text;
 

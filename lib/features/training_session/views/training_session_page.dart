@@ -98,7 +98,7 @@ class _TrainingSessionPageState extends State<TrainingSessionPage>
                               ),
                             ),
                             Text(
-                              '${((_currentCardIndex + 1) / total * 100).round()}%',
+                              '${total > 0 ? ((_currentCardIndex + 1) / total * 100).round() : 0}%',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
@@ -109,7 +109,9 @@ class _TrainingSessionPageState extends State<TrainingSessionPage>
                         ),
                         const SizedBox(height: 8),
                         LinearProgressIndicator(
-                          value: (_currentCardIndex + 1) / total,
+                          value: total > 0
+                              ? (_currentCardIndex + 1) / total
+                              : 0.0,
                           backgroundColor: Colors.grey.shade300,
                           valueColor: AlwaysStoppedAnimation<Color>(
                             Colors.blue.shade600,
@@ -184,9 +186,32 @@ class _TrainingSessionPageState extends State<TrainingSessionPage>
               );
             } else if (state is TrainingComplet) {
               return Center(
-                child: Text(
-                  'Training session completed! \n Next session available at: \n${state.nextSessionAvailable?.toLocal()}',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.check_circle_outline,
+                      size: 80,
+                      color: Colors.green.shade600,
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Training session completed!',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green.shade600,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Great job! Come back later for more practice.',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
                 ),
               );
             }
