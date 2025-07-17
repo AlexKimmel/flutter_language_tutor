@@ -120,10 +120,6 @@ class _FlashcardDialogState extends State<FlashcardDialog> {
                   front: widget.frontController.text.trim(),
                   back: widget.backController.text.trim(),
                   context: widget.contextController.text.trim(),
-                  nextReview: DateTime.now(),
-                  interval: 1,
-                  easeFactor: 2.5,
-                  repetitions: 0,
                 );
                 context.read<FlashcardBloc>().add(AddFlashcard(newCard));
               }

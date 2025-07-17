@@ -45,8 +45,7 @@ class _ChatPageState extends State<ChatPage> {
 
   void _loadVocabulary() async {
     //final known = await _flashcardRepository.getKnownFlashcards();
-    final learning = await _flashcardRepository
-        .getCurrentlyLearningFlashcards();
+    final learning = await _flashcardRepository.getNewFlashcards();
     setState(() {
       //_vocabulary = [...known, ...learning];
       _vocabulary = [...learning];
@@ -56,7 +55,6 @@ class _ChatPageState extends State<ChatPage> {
   void _handleSubmitted(String text) {
     if (text.trim().isEmpty) return;
 
-    // Use the bloc to send the message
     context.read<ChatBloc>().add(SendUserMessage(text));
     _scrollToBottom();
   }
@@ -65,7 +63,7 @@ class _ChatPageState extends State<ChatPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
-          0.0, // In reverse ListView, 0 is at the bottom (most recent)
+          0.0,
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOut,
         );
@@ -174,10 +172,7 @@ class _ChatPageState extends State<ChatPage> {
                             front: matchedWord,
                             back: '',
                             context: '',
-                            nextReview: DateTime.now(),
                             interval: 1,
-                            repetitions: 0,
-                            easeFactor: 2.5,
                           ),
                         )
                         .back,

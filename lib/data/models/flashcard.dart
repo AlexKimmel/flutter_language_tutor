@@ -4,22 +4,23 @@ class Flashcard {
   final String back;
   final String context;
 
-  final DateTime nextReview;
-  final int interval;
-  final double easeFactor;
-  final int repetitions;
+  double stability;
+  double difficulty;
+  int interval;
+  DateTime due;
+  DateTime? lastReviewed;
 
   Flashcard({
     this.id,
     required this.front,
     required this.back,
     required this.context,
-
-    required this.nextReview,
-    required this.interval,
-    required this.easeFactor,
-    required this.repetitions,
-  });
+    this.stability = 0.0,
+    this.difficulty = 0.3,
+    this.interval = 0,
+    DateTime? due,
+    this.lastReviewed,
+  }) : due = due ?? DateTime.now();
 
   factory Flashcard.fromMap(Map<String, dynamic> json) {
     return Flashcard(
@@ -27,11 +28,11 @@ class Flashcard {
       front: json['front'],
       back: json['back'],
       context: json['context'],
-
-      nextReview: DateTime.parse(json['nextReview']),
-      interval: json['interval'],
-      easeFactor: (json['easeFactor'] as num).toDouble(),
-      repetitions: json['repetitions'],
+      stability: (json['stability'] as num?)?.toDouble() ?? 0.0,
+      difficulty: (json['difficulty'] as num?)?.toDouble() ?? 0.3,
+      interval: json['interval'] ?? 0,
+      due: json['due'] != null ? DateTime.parse(json['due']) : DateTime.now(),
+      lastReviewed: json['lastReviewed'] != null ? DateTime.parse(json['lastReviewed']) : null,
     );
   }
 
@@ -41,10 +42,11 @@ class Flashcard {
       'front': front,
       'back': back,
       'context': context,
-      'nextReview': nextReview.toIso8601String(),
+      'stability': stability,
+      'difficulty': difficulty,
       'interval': interval,
-      'easeFactor': easeFactor,
-      'repetitions': repetitions,
+      'due': due.toIso8601String(),
+      'lastReviewed': lastReviewed?.toIso8601String(),
     };
   }
 
@@ -53,20 +55,22 @@ class Flashcard {
     String? front,
     String? back,
     String? context,
-    DateTime? nextReview,
+    double? stability,
+    double? difficulty,
     int? interval,
-    double? easeFactor,
-    int? repetitions,
+    DateTime? due,
+    DateTime? lastReviewed,
   }) {
     return Flashcard(
       id: id ?? this.id,
       front: front ?? this.front,
       back: back ?? this.back,
       context: context ?? this.context,
-      nextReview: nextReview ?? this.nextReview,
+      stability: stability ?? this.stability,
+      difficulty: difficulty ?? this.difficulty,
       interval: interval ?? this.interval,
-      easeFactor: easeFactor ?? this.easeFactor,
-      repetitions: repetitions ?? this.repetitions,
+      due: due ?? this.due,
+      lastReviewed: lastReviewed ?? this.lastReviewed,
     );
   }
 }

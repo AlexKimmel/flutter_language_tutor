@@ -167,9 +167,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     Return only a valid JSON object, with no introduction, no markdown blocks, no explanation — only valid raw JSON like this:
 ''';
       final List<Flashcard> knownWords = await _flashcardRepository
-          .getKnownFlashcards();
+          .getDueFlashcards();
       final List<Flashcard> currentlyLearning = await _flashcardRepository
-          .getCurrentlyLearningFlashcards();
+          .getNewFlashcards();
 
       final response = await http.post(
         Uri.parse(_openAiApiUrl),
@@ -227,10 +227,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
               front: flashcard['italian'] ?? '',
               back: flashcard['english'] ?? '',
               context: flashcard['context'] ?? '',
-              nextReview: DateTime.now(),
-              interval: 1,
-              easeFactor: 2.5,
-              repetitions: 0,
             ),
           )
           .toList();

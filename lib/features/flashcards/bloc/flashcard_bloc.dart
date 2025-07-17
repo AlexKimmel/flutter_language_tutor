@@ -22,7 +22,7 @@ class FlashcardBloc extends Bloc<FlashcardEvent, FlashcardState> {
     emit(FlashcardLoading());
     try {
       final cards = event.onlyDue
-          ? await repository.getDueFlashcards()
+          ? await repository.getNewFlashcards()
           : await repository.getAllFlashcards();
       emit(FlashcardLoaded(cards));
     } catch (e) {
@@ -55,8 +55,7 @@ class FlashcardBloc extends Bloc<FlashcardEvent, FlashcardState> {
     ReviewFlashcard event,
     Emitter<FlashcardState> emit,
   ) async {
-    final updated = repository.updateSRS(event.flashcard, event.quality);
-    await repository.updateFlashcard(updated);
+    final updated = await repository.updateSRS(event.flashcard, event.quality);
     add(LoadFlashcards(onlyDue: true));
   }
 }

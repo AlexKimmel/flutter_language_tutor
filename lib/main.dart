@@ -7,6 +7,7 @@ import 'package:language_tutor/features/flashcards/bloc/flashcard_repository.dar
 import 'package:language_tutor/features/chat/bloc/chat_bloc.dart';
 import 'package:language_tutor/features/grammar/bloc/grammar_bloc.dart';
 import 'package:language_tutor/features/grammar/bloc/grammar_repository.dart';
+import 'package:language_tutor/features/training_session/bloc/training_session_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +19,7 @@ void main() async {
   runApp(
     MultiBlocProvider(
       providers: [
+        BlocProvider(create: (_) => TrainingSessionBloc()),
         BlocProvider(create: (_) => FlashcardBloc(flashcardRepository)),
         BlocProvider(create: (_) => ChatBloc()),
         BlocProvider(create: (_) => GrammarCardBloc(grammarRepository)),

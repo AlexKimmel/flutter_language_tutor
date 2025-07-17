@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:language_tutor/features/flashcards/bloc/flashcard_bloc.dart';
 import 'package:language_tutor/features/flashcards/bloc/flashcard_event.dart';

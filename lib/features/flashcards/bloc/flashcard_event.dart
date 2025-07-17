@@ -1,3 +1,4 @@
+import 'package:fsrs/fsrs.dart';
 import 'package:language_tutor/data/models/flashcard.dart';
 
 abstract class FlashcardEvent {}
@@ -24,6 +25,6 @@ class DeleteFlashcard extends FlashcardEvent {
 
 class ReviewFlashcard extends FlashcardEvent {
   final Flashcard flashcard;
-  final int quality; // 0–5 for spaced repetition
+  final Rating quality; // 1–5 for spaced repetition
   ReviewFlashcard({required this.flashcard, required this.quality});
 }

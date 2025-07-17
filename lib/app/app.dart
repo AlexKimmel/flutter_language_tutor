@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
 import 'package:language_tutor/features/flashcards/views/flashcard_page.dart';
 import 'package:language_tutor/features/chat/views/chat_page.dart';
+import 'package:language_tutor/features/training_session/views/training_session_page.dart';
 import 'package:language_tutor/features/flashcards/widgets/flashcard_dialog.dart';
 import 'package:language_tutor/features/grammar/views/grammar_page.dart';
 
@@ -53,7 +54,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    if (_currentPage == 0) {
+    if (_currentPage == 0 || _currentPage == 2) {
       _bottomBarController.hideBar();
     } else {
       _bottomBarController.showBar();
@@ -159,7 +160,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
             AnimatedPositioned(
               duration: const Duration(milliseconds: 150),
               curve: Curves.decelerate,
-              bottom: _currentPage == 0 ? -25 : 20,
+              bottom: _currentPage == 0 || _currentPage == 2 ? -25 : 20,
               child: FloatingActionButton(
                 shape: const CircleBorder(),
                 backgroundColor: Colors.blue.shade400,
@@ -191,7 +192,7 @@ class _AppState extends State<App> with SingleTickerProviderStateMixin {
           children: const [
             ChatPage(),
             FlashcardPage(),
-            Placeholder(),
+            TrainingSessionPage(),
             GrammarPage(),
           ],
         ),
