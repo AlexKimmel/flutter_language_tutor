@@ -1,4 +1,5 @@
 import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
 
 class ChatRepository {
   static final ChatRepository _instance = ChatRepository._internal();
@@ -13,7 +14,7 @@ class ChatRepository {
   }
 
   Future<Database> _initDB() async {
-    final path = 'chat_history.db'; // Use a fixed path for simplicity
+    final path = join(await getDatabasesPath(), 'chat_history.db');
     return await openDatabase(
       path,
       version: 2,
@@ -32,6 +33,7 @@ class ChatRepository {
 
   Future<int> addMessage(String text, bool isUser) async {
     final db = await database;
+    //print('Adding message: $text, isUser: $isUser');
     return await db.insert('chat_messages', {
       'text': text,
       'is_user': isUser ? 1 : 0,
@@ -41,7 +43,13 @@ class ChatRepository {
 
   Future<List<Map<String, dynamic>>> getChatHistory({int limit = 50}) async {
     final db = await database;
-    return await db.query('chat_messages', orderBy: 'timestamp ASC', limit: 50);
+    final result = await db.query(
+      'chat_messages',
+      orderBy: 'timestamp ASC',
+      limit: limit,
+    );
+    //print('DEBUG: getChatHistory returned ${result.length} messages');
+    return result;
   }
 
   Future<void> clearChatHistory() async {

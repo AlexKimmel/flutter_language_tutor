@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_popup/flutter_popup.dart';
@@ -95,10 +94,10 @@ class _ChatPageState extends State<ChatPage> {
     return Column(
       children: [
         if (shouldShowDate) ChatDateBubble(date: message.timestamp),
-        if (!message.isUser)
-          AiChatBubble(message: message, context: context, text: text)
+        if (message.isUser)
+          UserChatBubble(text: message.text)
         else
-          UserChatBubble(text: message.text),
+          AiChatBubble(message: message, context: context, text: text),
       ],
     );
   }

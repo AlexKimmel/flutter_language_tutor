@@ -66,7 +66,7 @@ class GrammarRepository {
     } catch (e) {
       // If the column doesn't exist, return empty list
       // This is a fallback for migration issues
-      print('Error querying by messageId: $e');
+      //print('Error querying by messageId: $e');
       return [];
     }
   }

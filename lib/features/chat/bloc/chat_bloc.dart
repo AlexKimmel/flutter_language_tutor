@@ -22,6 +22,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   final GrammarRepository _grammarRepository = GrammarRepository();
 
   ChatBloc() : super(ChatLoading()) {
+    //print('DEBUG: ChatBloc constructor called - new instance created');
     on<LoadChatHistory>(_onLoadChatHistory);
     on<SendUserMessage>(_onSendUserMessage);
   }
@@ -32,23 +33,28 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   ) async {
     emit(ChatLoading());
     try {
-      final chatHistory = await _chatRepository.getChatHistory();
+      final chatHistory = await _chatRepository.getChatHistory(limit: 100);
+      //print('DEBUG: Loaded ${chatHistory.length} messages from database');
       _messages.clear();
 
       for (var msg in chatHistory) {
         ChatMessage message = ChatMessage.fromMap(msg);
-        if (!_messages.contains(message)) {
-          _grammarRepository.getGrammarCardsByMessageId(message.id as int).then(
-            (grammarCards) {
-              message.grammarNotes = grammarCards;
-            },
-          );
-          _messages.add(message);
+        // print(
+        //   'DEBUG: Loading message: ${message.text.substring(0, math.min(50, message.text.length))}...',
+        // );
+        // Load grammar cards synchronously
+        if (message.id != null) {
+          final grammarCards = await _grammarRepository
+              .getGrammarCardsByMessageId(message.id!);
+          message.grammarNotes = grammarCards;
         }
+        _messages.add(message);
       }
 
+      //print('DEBUG: Final _messages count: ${_messages.length}');
       emit(ChatLoaded(List.from(_messages)));
     } catch (e) {
+      //print('DEBUG: Error loading chat history: $e');
       emit(ChatError('Failed to load chat history: ${e.toString()}'));
     }
   }
@@ -73,7 +79,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     emit(ChatLoaded(List.from(_messages)));
 
     // Save user message to repository
-    await _chatRepository.addMessage(userMessage.text, userMessage.isUser);
+    final userMessageId = await _chatRepository.addMessage(
+      userMessage.text,
+      userMessage.isUser,
+    );
+    //print('DEBUG: Saved user message with ID: $userMessageId');
     final aiResponse = await _generateResponse(event.message);
 
     // Remove loading message
@@ -89,6 +99,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       aiResponse.text,
       aiResponse.isUser,
     );
+    //print('DEBUG: Saved AI response with ID: $messageId');
 
     if (aiResponse.flashcards.isNotEmpty) {
       for (var card in aiResponse.flashcards) {
@@ -204,7 +215,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         throw Exception('API call failed: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error calling OpenAI API: $e');
+      //print('Error calling OpenAI API: $e');
       return ChatMessage(
         text: _getFallbackResponse(userMessage),
         isUser: false,

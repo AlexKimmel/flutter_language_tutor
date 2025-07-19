@@ -56,4 +56,20 @@ class ChatMessage {
   String toString() {
     return 'ChatMessage: ${isUser ? 'User' : 'AITutor'}: $text';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is ChatMessage &&
+        other.id == id &&
+        other.text == text &&
+        other.isUser == isUser &&
+        other.timestamp == timestamp;
+  }
+
+  @override
+  int get hashCode {
+    return id.hashCode ^ text.hashCode ^ isUser.hashCode ^ timestamp.hashCode;
+  }
 }

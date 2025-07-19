@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+// ignore: library_prefixes
 import 'package:fsrs/fsrs.dart' as FSRS;
 import 'package:flutter/material.dart';
 import 'package:language_tutor/data/models/flashcard.dart';
@@ -19,7 +20,7 @@ class _TrainingSessionPageState extends State<TrainingSessionPage>
 
   bool _isFlipped = false;
   bool _showAnswer = false;
-  int _currentCardIndex = 0;
+  final int _currentCardIndex = 0;
 
   @override
   void initState() {
