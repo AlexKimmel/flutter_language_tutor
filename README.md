@@ -14,8 +14,8 @@ This is a Flutter-based language learning application designed to help users lea
 ## Getting Started
 
 ### Prerequisites
-	•	Flutter SDK
-	•	Dart SDK
+- Flutter SDK
+- Dart SDK
 
 ### Install Dependencies
 
