@@ -21,7 +21,7 @@ This is a Flutter-based language learning application designed to help users lea
 
 flutter pub get
 
-API Key Setup
+### API Key Setup
 
 The application uses the OpenAI API. To enable this, you currently must provide your API key.
 	1.	Create a .env file in the root of your project.
@@ -31,7 +31,7 @@ OPENAI_API_KEY=your_openai_api_key_here
 
 Note: This key is not included in version control. Make sure you do not check your .env file into GitHub.
 
-Run the App
+### Run the App
 
 flutter run
 
