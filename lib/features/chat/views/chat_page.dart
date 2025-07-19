@@ -93,7 +93,7 @@ class _ChatPageState extends State<ChatPage> {
 
     return Column(
       children: [
-        if (shouldShowDate) ChatDateBubble(date: message.timestamp),
+        //if (shouldShowDate) ChatDateBubble(date: message.timestamp),
         if (message.isUser)
           UserChatBubble(text: message.text)
         else
